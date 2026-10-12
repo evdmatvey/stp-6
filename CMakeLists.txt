@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.20)
 project(DataConverter VERSION 1.0.0 LANGUAGES CXX)
 
 # Убирает предупреждение CMP0135 при распаковке скачанных архивов
-cmake_policy(SET CMP0135 NEW)
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

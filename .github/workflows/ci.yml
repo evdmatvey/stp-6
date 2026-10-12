@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Inspect build environment
+        id: environment
+        shell: bash
+        run: |
+          cmake --version
+          echo "cmake=$(cmake --version | head -n 1)" >> "$GITHUB_OUTPUT"
+          echo "image=${ImageVersion:-unknown}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache FetchContent dependencies
+        uses: actions/cache@v6
+        with:
+          path: build/_deps
+          key: deps-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.image }}-${{ steps.environment.outputs.cmake }}-${{ hashFiles('CMakeLists.txt') }}
+
+      - name: Configure and download dependencies
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDATACONV_BUILD_TESTS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 2
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure --no-tests=error --output-junit test-results.xml
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ matrix.os }}
+          path: |
+            build/test-results.xml
+            build/Testing/Temporary/LastTest.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  ci-success:
+    name: All platforms passed
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm matrix success
+        run: echo "Build and tests passed on Ubuntu, macOS and Windows."
