@@ -36,7 +36,7 @@ jobs:
           key: deps-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.image }}-${{ steps.environment.outputs.cmake }}-${{ hashFiles('CMakeLists.txt') }}
 
       - name: Configure and download dependencies
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDATACONV_BUILD_TESTS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDATACONV_BUILD_TESTS=ON "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 
       - name: Build
         run: cmake --build build --config Release --parallel 2
