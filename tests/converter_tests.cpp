@@ -1,7 +1,3 @@
-#ifdef __linux__
-FAIL() << "Controlled failure";
-#endif
-
 #include "converter.hpp"
 
 #include <gtest/gtest.h>
